@@ -1,0 +1,158 @@
+{% extends "static/base.html" %}
+
+{% block title %}Admin Page{% endblock %}
+
+{% block head %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script>
+
+	$(document).ready(function(){
+		$('.test-title').click(function(){
+			console.log('this');
+			$(this).next("div").slideToggle();
+		});
+	});
+
+
+
+</script>
+<link type="text/css" rel="stylesheet" href="/stylesheets/admin.css" />
+{% endblock %}
+
+{% block toolbar %}
+
+	<div class="toolbar clickable-tool" id="add-patient">
+		<a href="#addPatientMod" class="open-modal"><img src="/images/icon-add-person.png" height="50" width="50"></a>
+	</div>
+
+{% endblock %}
+
+{% block content %}
+		<div id="addPatientMod" class="modalDialog">
+			<div>
+				<a href="#close" title="Close" class="close">X</a>
+				<h2>Please enter patient ID number</h2>
+				<form action="/newPatient" method="post">
+					<div><input type=text autocomplete="off" required="required" class="textbox" placeholder="ID" name="patientID" patern="[0-9]*"></div>
+					<div><input type=submit value="Create Patient"></div>
+				</form>
+
+			</div>
+		</div>
+		{% if error_message %}
+		<div id="errorMod" class="modalDialog">
+			<div>
+				<a href="#close" title="Close" class="close">X</a>
+				<h2>Error</h2>
+				<p>{{ error_message }}</p>
+			</div>
+		</div>
+		{% endif %}
+		
+		<div id="patient-container">
+			<!--<div id="patient-search-bar">
+				<form action="/search" method="post">
+      				<div><input type=search name=s></div>
+      			</form>
+			</div>-->
+			<div id="patient-title"><span>Patients: </span></div>
+			<div id="patient-list">
+				{% if not patients %}
+				<div><span>Add Patients from the toolbar</span></div>
+				{% endif %}
+				{% for pat in patients %}
+	    		<a href="/admin?patient={{ pat.id }}">
+	    			<div {% if pat.id == curPatient.id %} id="selected-patient" {% endif %} class ="patient-entry">
+		    			<span>{{ pat.id }}</span>
+		    			{% if pat.data %}
+		    				<div class="hasData"><span>x</span></div>
+		    			{% endif %}
+		    		</div>
+	    		</a>
+	    		{% endfor %}
+			</div>
+		</div>
+		<div id="newTestMod" class="modalDialog">
+			<div>
+				<a href="#close" title="Close" class="close">X</a>
+				<div id="testMod-Title">New Test for Patient #{{ curPatient.id }}</div>
+				<div id = "testMod-Instructions">Select the tests to include in the battery</div>
+				<form action="/newTestBattery?id={{curPatient.id}}" method="post">
+					<div class="test-choices-container">
+						<input type="checkbox" id="c1" name="mt" />
+						<label for="c1"><div class="test-choice">Multitasking</div></label>
+						<input type="checkbox" id="c4" name="swi" />
+						<label for="c4"><div class="test-choice">Switching</div></label>
+						<input type="checkbox" id="c6" name="nb" />
+						<label for="c6"><div class="test-choice">N-Back</div></label>
+						<input type="checkbox" id="c8" name="sr" />
+						<label for="c8"><div class="test-choice">Self-Rating</div></label>
+					</div>
+					<div id="battery-submit"><input type=submit value="Create Battery"></div>
+				</form>
+			</div>
+		</div>
+			<div id="clipboard">
+				<div id="clipboard-content">
+
+
+					{% if curPatient %}
+
+						<h1>Patient #{{ curPatient.id }}</h1>
+						<hr>
+						<div id="test-info-container">
+							{% if curBattery %}
+								<h2>{{curBattery.dateString}}</h2>
+								<p>Send this URL to the patient: <a href="/?id={{curBattery.url}}">snnlmcab.com/?id={{curBattery.url}}</a></p>
+								{% if curBattery.testData %}
+									<div class="test-data-container">
+										{% for test in curBattery.testData %}
+											<div class="test">
+												<div class="test-title">
+													<span>{{test.testName}}</span>
+												</div>
+												<div class="test-data">
+													{% if test.data %}
+														<p>{{test.data}}</p>
+													{% else %}
+														<p>No data has been collected yet.</p>
+													{% endif %}
+												</div>
+											</div>
+										{% endfor %}
+									</div>
+									<div class="black-button" id="export-data-button">Export Data</div>
+								{% endif %}
+							{% endif %}
+						</div>
+						
+						<h3>Tests:</h3>
+						<div id="battery-panel">
+							<div class="battery-container">
+								{% if pastBatteries %}
+									
+									{% for batt in pastBatteries %}
+										<a class="battery-link" href="/admin?patient={{curPatient.id}}&amp;battery={{batt.url}}"><div class="battery" {% if batt.url == curBattery.url %} id="selected-battery" {% endif %}><span>{{ batt.dateString }}</span></div></a>
+									{% endfor %}
+								{% else %}
+									<p> No tests have been made yet.</p>
+								{% endif %}
+							</div>
+
+							<a href="#newTestMod" class="open-modal"><div class="black-button" id="newTestButton"><span>New Test</span></div></a>
+						</div>
+						
+
+						
+
+					{% else %}
+
+					<h4>Welcome to the Mobile Cognitive Assessment Battery admin page!</h4>
+					<p>To administer the battery to a new patient. Click the <img="../images/icon-add-person.png"> button in the toolbar. You will be able to select which tests they will take. You can send them a link to their assessment.</p>
+					<p>After the patient has completed the assessment you will be able to view their results in their patient profile, which will be in the list of patients.</p>
+
+					{% endif %}
+				</div>
+			</div>
+
+{% endblock %}

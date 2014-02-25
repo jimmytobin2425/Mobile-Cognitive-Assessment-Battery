@@ -1,0 +1,347 @@
+input[type="checkbox"] {
+    display:none;
+}
+
+input[type="checkbox"] + label div {
+  margin:5px;
+  border: 2px #820000 solid;
+  border-radius: 5px;
+  display: block;
+  vertical-align: middle;
+  font-size: 20px;
+  float:left;
+  width:45%;
+  height:32px;
+  background-color: white;
+  color: 820000;
+}
+
+#testMod-Title{
+  clear:both;
+  width: 90%;
+  font-size: 36px;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+#testMod-Instructions{
+  clear:both;
+  width: 90%;
+  font-size: 14px;
+}
+
+input[type="checkbox"]:checked + label div {
+    background-color: #8C1515;
+    color: white;
+}
+
+#patient-container #patient-list{
+  background-color: #8a887d;
+}
+
+#patient-container{
+  padding: 1em;
+  background-color: #8a887d;
+  height: 95%; 
+  width: 30%;
+  float:left;
+}
+
+#patient-container #patient-list #selected-patient{
+  background-image: url();
+  background-color: #8C1515;
+  color: white;
+  border-color: black;
+}
+
+#patient-search-bar{
+  width: 100%;
+  font-size: 24px;
+}
+
+input[type=search]{
+  width: 100%;
+  font-size: 14px;
+  border-radius:15px;
+  height: 24px;
+}
+
+input[type=text]{
+  width: 100%;
+  height: 2em;
+  margin-bottom: 7px;
+  font-size: 24px;
+  border-radius:5px;
+}
+
+input[type=password]{
+  width: 100%;
+  height: 2em;
+  margin-bottom: 7px;
+  font-size: 24px;
+  border-radius:5px;
+}
+.change-password{
+  text-align: center;
+  vertical-align: text-bottom;
+}
+
+#patient-list{
+  height: 85%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  border-radius:5px;
+}
+
+#patient-list a{
+  text-decoration: none;
+  color: black;
+}
+
+#patient-title{
+  font-size: 32px;
+  color: #F8F6EA;
+  background: #3f3c30;
+  width: 100%;
+  border-radius:5px;
+}
+
+#patient-title span{
+  margin:5px;
+}
+
+
+
+.test-data{
+  display: none;
+}
+
+.test{
+  margin-left: 5px;
+}
+
+.test-title{
+  padding-left: 4px;
+  font-size: 24px;
+  width:95%;
+  background-color: white;
+  border: 1px gray solid;
+  border-radius: 5px; 
+  height:28px;
+  vertical-align: middle;
+}
+
+#submitPassword{
+  vertical-align: bottom;
+}
+
+
+
+input[type=submit]{
+  clear:both;
+  background-color: #2e2d29;
+  border-radius:10px;
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 24px;
+  color:#F8F6EA;
+  margin-top: 1em;
+  vertical-align: text-bottom;
+  text-align: center;
+}
+
+#patient-list div{
+  background-image: url(../images/login-modal.png); 
+  background-repeat: no-repeat; 
+  background-size: 100%, 100%;
+  font-size: 18px;
+  width:100%;
+  height:2em;
+  margin: 0;
+  padding-top:1em;
+  border-radius:5px;
+}
+
+#battery-submit{
+  clear: both;
+}
+
+.test-choices-container{
+
+  margin:5px;
+}
+
+.patient-entry span{
+  margin-left:10px;
+}
+
+.patient-entry:hover{
+  border:2px black solid;
+  box-shadow: 10px 10px 5px #888888;
+}
+
+.clickable-tool a{
+  text-decoration: none;
+  color: #F8F6EA; 
+}
+
+.modalDialog {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 99999;
+  opacity:0;
+  -webkit-transition: opacity 400ms ease-in;
+  -moz-transition: opacity 400ms ease-in;
+  transition: opacity 400ms ease-in;
+  pointer-events: none;
+
+}
+
+.modalDialog:target {
+  opacity:1;
+  pointer-events: auto;
+}
+
+.modalDialog > div {
+  text-align: center;
+  width: 400px;
+  position: relative;
+  margin: 10% auto;
+  padding: 5px 20px 13px 20px;
+  border-radius: 10px;
+  background-color: #eee6cb;
+}
+
+.close {
+  background: #606061;
+  color: #FFFFFF;
+  line-height: 25px;
+  position: absolute;
+  right: -12px;
+  text-align: center;
+  top: -10px;
+  width: 24px;
+  text-decoration: none;
+  font-weight: bold;
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  border-radius: 12px;
+  -moz-box-shadow: 1px 1px 3px #000;
+  -webkit-box-shadow: 1px 1px 3px #000;
+  box-shadow: 1px 1px 3px #000;
+}
+
+.close:hover { background: #820000; }
+
+#clipboard{
+  position:relative;
+  float:right;
+  margin-top:2em;
+  vertical-align: bottom;
+  background-image: url(../images/clipboard.png);
+  background-repeat: no-repeat; 
+  background-size: 100%, 100%;
+  height:90%;
+  width:65%; 
+  overflow: hidden;
+}
+
+#clipboard-content{
+  position: relative;
+  margin-top: 4em;
+  margin-left: 2em;
+  margin-right: 2em;
+  height: 80%;
+  overflow: scroll;
+}
+
+.battery-container{
+  padding: 10px;
+  background-color: #8a887d;
+  height: 60%; 
+  width: 20%;
+  float:left;
+  margin-bottom: 10px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  border-radius:5px;
+  text-decoration: none;
+  color: black;
+}
+
+.battery{
+  background-image: url(../images/login-modal.png); 
+  background-repeat: no-repeat; 
+  background-size: 100%, 100%;
+  width:100%;
+  height:2em;
+  margin: 0px;
+  padding-top:1em;
+  border-radius:5px;
+  text-align: center;
+}
+
+.battery:hover{
+  border:2px black solid;
+  box-shadow: 10px 10px 5px #888888;
+}
+
+.black-button{
+  background-color: #2e2d29;
+  border-radius:10px;
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 24px;
+  color:#F8F6EA;
+  text-decoration: none;
+  text-align: center;
+  width:22%;
+  padding: 2px;
+  margin-top: 5px;
+}
+
+#newTestButton{
+  float: left;
+  
+  height:32px;
+}
+
+.battery-container a.battery-link{
+  text-decoration: none;
+  color: black;
+}
+
+.battery-link{
+  text-decoration: none;
+}
+
+.battery span{
+  text-decoration: none;
+  text-align: center;
+}
+
+#clipboard-content a{
+  text-decoration: none;
+}
+
+#selected-battery{
+  background-image: url();
+  background-color: #8C1515;
+  color: white;
+  border-color: black;
+}
+
+#test-info-container{
+  border-radius: 5px;
+  padding-left: 5px;
+  float:right;
+  width:75%;
+  height:84%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  background-color:#e3dfd5; 
+
+}
+

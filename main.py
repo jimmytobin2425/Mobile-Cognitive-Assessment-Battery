@@ -143,7 +143,7 @@ class Admin(webapp2.RequestHandler):
         patients_list, patients_dict = self.get_patients(study_name)
 
         if patientID:
-            curPatient = patients_dict.get(patientID)
+            curPatient = patients_dict.get(int(patientID))
             if not curPatient:
                 error="no patient id"
                 self.redirect('/admin?'+urllib.urlencode({'error':error})+'#errorMod')
@@ -184,6 +184,7 @@ class Admin(webapp2.RequestHandler):
         patients_list = memcache.get('%s:patients_list' % study_name)
         patients_dict = memcache.get('%s:patients_dict' % study_name)
         if patients_list and patients_dict is not None:
+            print(patients_list, patients_dict)
             return patients_list, patients_dict
         else:
             patients_list = Patient.query(ancestor=study_key(study_name)).order(Patient.id).fetch()

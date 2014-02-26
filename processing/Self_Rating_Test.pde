@@ -1,5 +1,6 @@
 //Images
 PImage bg;
+PImage instructions;
 
 //Global Variables
 ArrayList<String> questions;
@@ -7,14 +8,14 @@ ArrayList<Integer> answers;
 ArrayList<ClickableObj> clickableObjs;
 ArrayList<Integer> shuffled;
 int index;
-
+boolean begun = false;
 
 //ArrayList<BoardObj> toDisplay;
 
 void setup() {
   size(screen.width,screen.height);
   bg = loadImage("../images/patients-background.png");
-  
+  instructions = loadImage("../images/selfrating-example.png");
   clickableObjs = new ArrayList<ClickableObj>();
   questions = new ArrayList<String>();
   answers = new ArrayList<Integer>();
@@ -24,25 +25,31 @@ void setup() {
   populateQs();
   
   index = 0;
-  begin();
-}
-
-
-
-void draw(){
-  image(bg, 0, 0, width, height);
+  stroke(255,0,0);
+  
 }
 
 void mouseClicked(){
-  CLickableObj obj = findMouseSelect(mouseX, mouseY);
-  if(obj != null) obj.click();
+  //CLickableObj obj = findMouseSelect(mouseX, mouseY);
+  //if(obj != null) obj.click();
   if(javascript!=null){
       javascript.showXYCoordinates(mouseX, mouseY);
   }
   redraw();
   noLoop();
+  begun = true;
 }
 
+
+void draw(){
+  image(bg, 0, 0, width, height);
+  if (!begun){
+    begin();
+  }
+}
+
+
+/*
 ClickableObj findMouseSelect(int x, int y){
   for(ClickableObj obj : clickableObjs){
     //println("Mouse clicked at ("+x+","+y+")");
@@ -50,6 +57,7 @@ ClickableObj findMouseSelect(int x, int y){
   }
   return null;
 }
+*/
 
 void populateQs(){
   questions.add("I have trouble remembering new things.");
@@ -88,17 +96,25 @@ void populateQs(){
 }
 
 //Screens
-
 void begin(){
-    text("Self Rating Test")
-    text("Read each statement presented and select the appropriate rating")
-    img("selfrating-example.png")
-    StartButton startButton = new StartButton();
+  //title
+  textAlign(CENTER, BOTTOM);
+  textSize(height*.1);
+  text("Self Rating Test", 0, height*.05, width, height*.1);
+  //instructions
+  textSize(height*.05);
+  text("Read each statement presented and select the appropriate rating", 0, height*.175, width, height*.05)
+  //image or video
+  image(instructions, width*.25, height*.25, width*.5, height*.5)
+  //start button
+  //StartButton startButton = new StartButton();
 }
 
+/*
 void nextQuestion(){
   
 }
+*/
 
 //Javascript Interface
 
@@ -160,7 +176,7 @@ class StartButton extends Button{
   display(){}
   
   click(){
-    
+    begun = true;
   }
 }
 

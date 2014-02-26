@@ -292,9 +292,10 @@ class AddBattery(webapp2.RequestHandler):
         newBattery.put()
         batteries_dict =  memcache.get('%s:batteries_dict' % patient.id)
         batteries_list = memcache.get('%s:batteries_list' % patient.id)
-        if not batteries_list and not batteries_dict:
-            batteries_dict={}
+        if not batteries_list:
             batteries_list=[]
+        if not batteries_dict:
+            batteries_dict={}
         batteries_dict[url] = newBattery
         batteries_list.append(newBattery)
         sorted_batt_list = sorted(batteries_list, key=lambda bat: bat.dateString, reverse=True)
@@ -307,7 +308,7 @@ class AddBattery(webapp2.RequestHandler):
         if not patients:
             logging.error('Memcache set failed.')
             return None
-        return patients[patientID]
+        return patients[int(patientID)]
 
 
     def createRandURL(self):

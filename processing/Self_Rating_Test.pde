@@ -24,7 +24,7 @@ void setup() {
   populateQs();
   
   index = 0;
-  //begin();
+  begin();
 }
 
 
@@ -87,6 +87,19 @@ void populateQs(){
   questions.add("I have been physically active throughout my life");
 }
 
+//Screens
+
+void begin(){
+    text("Self Rating Test")
+    text("Read each statement presented and select the appropriate rating")
+    img("selfrating-example.png")
+    StartButton startButton = new StartButton();
+}
+
+void nextQuestion(){
+  
+}
+
 //Javascript Interface
 
 
@@ -129,16 +142,7 @@ class ClickableObj extends BoardObj{
   void click(){}
 }
 
-void begin(){
-    text("Self Rating Test")
-    text("Read each statement presented and select the appropriate rating")
-    img("selfrating-example.png")
-    StartButton startButton = new clickableObj("start");
-}
 
-void nextQuestion(){
-  
-}
 
 class Button extends ClickableObj{
   String displayText
@@ -153,7 +157,7 @@ class Button extends ClickableObj{
 
 class StartButton extends Button{
   displayText = "Start"
-  display()
+  display(){}
   
   click(){
     

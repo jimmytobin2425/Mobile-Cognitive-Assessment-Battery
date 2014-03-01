@@ -61,10 +61,10 @@
 				<div><span>Add Patients from the toolbar</span></div>
 				{% endif %}
 				{% for pat in patients %}
-	    		<a href="/admin?patient={{ pat.id }}">
-	    			<div {% if pat.id == curPatient.id %} id="selected-patient" {% endif %} class ="patient-entry">
-		    			<span>{{ pat.id }}</span>
-		    			{% if pat.data %}
+	    		<a href="/admin?patient={{ patients[pat].id }}">
+	    			<div {% if patients[pat].id == curPatient.id %} id="selected-patient" {% endif %} class ="patient-entry">
+		    			<span>{{ patients[pat].id }}</span>
+		    			{% if patients[pat].data %}
 		    				<div class="hasData"><span>x</span></div>
 		    			{% endif %}
 		    		</div>
@@ -130,9 +130,8 @@
 						<div id="battery-panel">
 							<div class="battery-container">
 								{% if pastBatteries %}
-									
 									{% for batt in pastBatteries %}
-										<a class="battery-link" href="/admin?patient={{curPatient.id}}&amp;battery={{batt.url}}"><div class="battery" {% if batt.url == curBattery.url %} id="selected-battery" {% endif %}><span>{{ batt.dateString }}</span></div></a>
+										<a class="battery-link" href="/admin?patient={{curPatient.id}}&amp;battery={{pastBatteries[batt].url}}"><div class="battery" {% if pastBatteries[batt].url == curBattery.url %} id="selected-battery" {% endif %}><span>{{ pastBatteries[batt].dateString }}</span></div></a>
 									{% endfor %}
 								{% else %}
 									<p> No tests have been made yet.</p>

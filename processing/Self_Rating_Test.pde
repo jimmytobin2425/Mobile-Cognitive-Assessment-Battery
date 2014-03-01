@@ -6,11 +6,22 @@ PImage instructions;
 ArrayList<String> questions;
 ArrayList<Integer> answers;
 ArrayList<ClickableObj> clickableObjs;
-ArrayList<Integer> shuffled;
-int index;
+Stack<Integer> shuffled;
+int curIndex;
 boolean begun = false;
+String url = '/logSRTdata'
 
-//ArrayList<BoardObj> toDisplay;
+ArrayList<BoardObj> toDisplay;
+
+//Javascript Interface
+
+interface JavaScript {
+  void logData(String url, String data, String dataID);
+}
+
+void bindJavascript(JavaScript js) {
+  javascript = js;
+}
 
 void setup() {
   size(screen.width,screen.height);
@@ -23,8 +34,8 @@ void setup() {
   toDisplay = new ArrayList<toDisplay>();
 
   populateQs();
+  shuffleQs();
   
-  index = 0;
   stroke(255,0,0);
   
 }
@@ -32,9 +43,7 @@ void setup() {
 void mouseClicked(){
   //CLickableObj obj = findMouseSelect(mouseX, mouseY);
   //if(obj != null) obj.click();
-  if(javascript!=null){
-      javascript.showXYCoordinates(mouseX, mouseY);
-  }
+  
   redraw();
   noLoop();
   begun = true;
@@ -45,6 +54,9 @@ void draw(){
   image(bg, 0, 0, width, height);
   if (!begun){
     begin();
+  }
+  for(BoardObj obj : toDisplay){
+    obj.display();
   }
 }
 
@@ -99,10 +111,10 @@ void populateQs(){
 void begin(){
   //title
   textAlign(CENTER, BOTTOM);
-  textSize(height*.1);
+  textSize(32);
   text("Self Rating Test", 0, height*.05, width, height*.1);
   //instructions
-  textSize(height*.05);
+  textSize(14);
   text("Read each statement presented and select the appropriate rating", 0, height*.175, width, height*.05)
   //image or video
   image(instructions, width*.25, height*.25, width*.5, height*.5)
@@ -110,24 +122,44 @@ void begin(){
   //StartButton startButton = new StartButton();
 }
 
-/*
+
 void nextQuestion(){
+  //getNextQuestionIndex
+  curIndex = shuffled.pop();
+  String questionText = questions[curIndex];
+  //setNextQuestionText
+  Question nextQuestion = new Question(questionText);
+  //createNextQuestion
+  toDisplay.clear();
+  toDisplay.add(nextQuestion);
+}
+
+void sendData(String points){
+  if(javascript!=null){
+    String data = createData(points);
+    String dataID = createDataId();
+    javascript.logData(url, data, dataID);
+  }
+}
+
+void createData(){
   
 }
-*/
 
-//Javascript Interface
-
-
-interface JavaScript {
-  void showXYCoordinates(int x, int y);
+void createDataId(){
+  
 }
 
-void bindJavascript(JavaScript js) {
-  javascript = js;
+void logDataReceived(String dataID){
+  if (dataID.equals("-1")){
+    finalScreen();
+  }
 }
 
-/*
+void finalScreen(){
+
+}
+
 //Classes
 class BoardObj{
   void display(){}
@@ -156,7 +188,7 @@ class ClickableObj extends BoardObj{
   }
   
   void click(){}
-}
+};
 
 
 
@@ -164,43 +196,91 @@ class Button extends ClickableObj{
   String displayText
   int buttonWidth;
   int buttonHeight;
- 
-  display(){
-    //black box with text
-    text(displayText)
+  int x;
+  int y;
+
+  Button(){
+    buttonWidth = 50;
+    buttonHeight = 30;
   }
-}
+
+ 
+  void display(){
+    pushStyle(); 
+      fill(0);
+      rect(x, y, buttonWidth, buttonHeight, 10);
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(24);
+      text(displayText, x, y, buttonWidth, buttonHeight);
+    popStyle();
+  }
+};
 
 class StartButton extends Button{
   displayText = "Start"
-  display(){}
   
   click(){
     begun = true;
+    nextQuestion();
   }
-}
+};
 
-class SometimesButton extends Button{
-  displayText = "Sometimes"
+class AnswerButton extends Button{
+  String pointValue;
+
+  AnswerButton(String text, String points){
+    displayText = text;
+    pointValue = points;
+  }
+
   click(){
-    
-  }
-  
-}
+    sendData(pointValue);
+  } 
+};
 
-class NeverButton extends Button{
-  displayText = "Never"
-  click(){
-    
-  }
-}
+class ButtonBar extends BoardObj{
+  int buttonMargin = 10;
+  AnswerButton never;
+  AnswerButton sometimes;
+  AnswerButton often;
 
-class OftenButton extends Button{
-  displayText = "Often"
-  click(){
-    
+  ButtonBar(){
+    AnswerButton never = new AnswerButton("Never", "0");
+    AnswerButton sometimes = new AnswerButton("Sometimes", "1");
+    AnswerButton often = new AnswerButton("Often", "2");
+    //Set buttons' x's and y's
+    int barWidth = never.buttonWidth*3+buttonMargin*3
+    never.x = (width-barWidth)/2;
+    sometimes.x = never.x+never.buttonWidth+buttonMargin;
+    often.x = sometimes.x+sometimes.buttonWidth+buttonMargin;
+    never.y = sometimes.y = often.y = height*.8
   }
-}
 
-*/
+  @Override
+  void display(){
+    never.display();
+    sometimes.display();
+    often.display();
+  }
+};
+
+class Question extends BoardObj{
+  String question;
+  ButtonBar buttons;
+
+  Question(String questionText){
+    question = questionText;
+    buttons = new ButtonBar();
+  }
+
+
+  void display(){
+    //TODO: CENTER IT
+    text(questionText);
+    buttons.display();
+  }
+};
+
+
 

@@ -7,9 +7,9 @@
 <script src="/scripts/processing.js" type="text/javascript"></script>
 <script type="text/javascript">
 	var bound = false;
-
+	var pjs;
 	function bindJavascript() {
-	var pjs = Processing.getInstanceById('textCanvas');
+	pjs = Processing.getInstanceById('textCanvas');
 	if(pjs!=null) {
 	  pjs.bindJavascript(this);
 	  bound = true; }
@@ -20,6 +20,41 @@
 	function showXYCoordinates(x, y) {
 		console.log(x+","+y);
 	}
+
+	function logData(url, data, dataID) {
+		var httpRequest;
+		if (window.XMLHttpRequest) { // Mozilla, Safari, ...
+		  httpRequest = new XMLHttpRequest();
+		} else if (window.ActiveXObject) { // IE
+		  try {
+		    httpRequest = new ActiveXObject("Msxml2.XMLHTTP");
+		  } 
+		  catch (e) {
+		    try {
+		      httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
+		    } 
+		    catch (e) {}
+		  }
+		}
+
+		if (!httpRequest) {
+		  alert('Giving up :( Cannot create an XMLHTTP instance');
+		  return false;
+		}
+		httpRequest.onreadystatechange = logDataReceived
+		httpRequest.open('POST', url);
+		httpRequest.send(data);
+	}
+
+		function logDataReceived() {
+			if (httpRequest.readyState === 4) {
+			  if (httpRequest.status === 200) {
+			    pjs.logDataReceived(httpRequest.dataID);
+			  } else {
+			    alert('There was a problem with the request.');
+			  }
+			}
+		}
 </script>
 {% endblock %}
 

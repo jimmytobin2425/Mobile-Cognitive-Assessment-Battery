@@ -41,12 +41,10 @@ void setup() {
 }
 
 void mouseClicked(){
-  //CLickableObj obj = findMouseSelect(mouseX, mouseY);
-  //if(obj != null) obj.click();
-  
+  CLickableObj obj = findMouseSelect(mouseX, mouseY);
+  if(obj != null) obj.click();
   redraw();
   noLoop();
-  begun = true;
 }
 
 
@@ -61,7 +59,7 @@ void draw(){
 }
 
 
-/*
+
 ClickableObj findMouseSelect(int x, int y){
   for(ClickableObj obj : clickableObjs){
     //println("Mouse clicked at ("+x+","+y+")");
@@ -69,7 +67,6 @@ ClickableObj findMouseSelect(int x, int y){
   }
   return null;
 }
-*/
 
 void populateQs(){
   questions.add("I have trouble remembering new things.");
@@ -107,6 +104,13 @@ void populateQs(){
   questions.add("I have been physically active throughout my life");
 }
 
+void shuffleQs(){
+  for(int i=0;i<questions.size();i++){
+    shuffled.push(i);
+  }
+  Collections.shuffle(shuffled);
+}
+
 //Screens
 void begin(){
   //title
@@ -125,15 +129,33 @@ void begin(){
 
 void nextQuestion(){
   //getNextQuestionIndex
-  curIndex = shuffled.pop();
-  String questionText = questions[curIndex];
-  //setNextQuestionText
-  Question nextQuestion = new Question(questionText);
-  //createNextQuestion
-  toDisplay.clear();
-  toDisplay.add(nextQuestion);
+  if(!shuffled.isEmpty()){
+    curIndex = shuffled.pop();
+    String questionText = questions[curIndex];
+    //setNextQuestionText
+    Question nextQuestion = new Question(questionText);
+    //createNextQuestion
+    toDisplay.clear();
+    toDisplay.add(nextQuestion);
+  }else{
+    waitingScreen();
+  }
 }
 
+void finalScreen(){
+  toDisplay.clear();
+  text(question, width*.2, height*.4, width*.6, height*.3);
+
+}
+
+void waitingScreen(){
+  toDisplay.clear();
+  text(question, width*.2, height*.4, width*.6, height*.3);
+}
+
+//
+//Talking with JavaScript
+//
 void sendData(String points){
   if(javascript!=null){
     String data = createData(points);
@@ -142,12 +164,12 @@ void sendData(String points){
   }
 }
 
-void createData(){
-  
+String createData(String points){
+  return "question="+curIndex+'&points='+points;
 }
 
-void createDataId(){
-  
+String createDataId(){
+  return Integer.toString(questions.size()-shuffled.size()+1);
 }
 
 void logDataReceived(String dataID){
@@ -156,9 +178,6 @@ void logDataReceived(String dataID){
   }
 }
 
-void finalScreen(){
-
-}
 
 //Classes
 class BoardObj{
@@ -194,25 +213,23 @@ class ClickableObj extends BoardObj{
 
 class Button extends ClickableObj{
   String displayText
-  int buttonWidth;
-  int buttonHeight;
   int x;
   int y;
 
   Button(){
-    buttonWidth = 50;
-    buttonHeight = 30;
+    objHeight = 30;
+    objWidth = 50;
   }
 
  
   void display(){
     pushStyle(); 
       fill(0);
-      rect(x, y, buttonWidth, buttonHeight, 10);
+      rect(x, y, objWidth, objHeight, 10);
       fill(255);
       textAlign(CENTER, CENTER);
       textSize(24);
-      text(displayText, x, y, buttonWidth, buttonHeight);
+      text(displayText, x, y, objWidth, objHeight);
     popStyle();
   }
 };
@@ -220,6 +237,7 @@ class Button extends ClickableObj{
 class StartButton extends Button{
   displayText = "Start"
   
+  @Override
   click(){
     begun = true;
     nextQuestion();
@@ -234,6 +252,7 @@ class AnswerButton extends Button{
     pointValue = points;
   }
 
+  @Override
   click(){
     sendData(pointValue);
   } 
@@ -250,10 +269,10 @@ class ButtonBar extends BoardObj{
     AnswerButton sometimes = new AnswerButton("Sometimes", "1");
     AnswerButton often = new AnswerButton("Often", "2");
     //Set buttons' x's and y's
-    int barWidth = never.buttonWidth*3+buttonMargin*3
+    int barWidth = never.objWidth*3+buttonMargin*3
     never.x = (width-barWidth)/2;
-    sometimes.x = never.x+never.buttonWidth+buttonMargin;
-    often.x = sometimes.x+sometimes.buttonWidth+buttonMargin;
+    sometimes.x = never.x+never.objWidth+buttonMargin;
+    often.x = sometimes.x+sometimes.objWidth+buttonMargin;
     never.y = sometimes.y = often.y = height*.8
   }
 
@@ -276,8 +295,11 @@ class Question extends BoardObj{
 
 
   void display(){
-    //TODO: CENTER IT
-    text(questionText);
+    pushStyle();
+      textAlign(CENTER, BOTTOM);
+      fontSize(48);
+      text(question, width*.2, height*.4, width*.6, height*.3);
+    popStyle();
     buttons.display();
   }
 };

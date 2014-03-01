@@ -127,7 +127,7 @@ class Admin(webapp2.RequestHandler):
     def get(self):
         #Template Variables
         curPatient=None;
-        pastBatteries=None;
+        pastBatteries_dict=None;
         curBatt = None;
         error_message=None;
 
@@ -143,7 +143,7 @@ class Admin(webapp2.RequestHandler):
         patients_dict = self.get_patients(study_name)
 
         if patientID:
-            curPatient = patients_dict.get(int(patientID))
+            curPatient = patients_dict.get(patientID)
             if not curPatient:
                 error="no patient id"
                 self.redirect('/admin?'+urllib.urlencode({'error':error})+'#errorMod')
@@ -290,14 +290,14 @@ class AddBattery(webapp2.RequestHandler):
         if not batteries_dict:
             batteries_dict=OrderedDict()
         batteries_dict[url] = newBattery
-        batteries_dict = OrderedDict(sorted(batteries_dict.items(), key=lambda bat: bat[1]['dateString'], reverse=True)
+        batteries_dict = OrderedDict(sorted(batteries_dict.items(), key=lambda bat: bat[1].dateString, reverse=True))
         memcache.set('%s:batteries_dict' % patient.id, batteries_dict)
 
 
     def get_curPatient(self, patientID, study_name):
         patients = memcache.get('%s:patients_dict' % study_name)
         if not patients:
-            curPatient = Patient.query(ancestor=curPatient.key, Patient.id==patientID).fetch()
+            curPatient = Patient.query(Patient.id==patientID, ancestor=curPatient.key).fetch()
             if curPatient:
                 return curPatient
             else:

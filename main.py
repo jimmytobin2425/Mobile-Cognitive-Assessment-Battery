@@ -6,6 +6,7 @@ import random
 from datetime import datetime
 import time
 import logging
+from collections import OrderedDict
 
 from google.appengine.api import memcache
 from google.appengine.api import users
@@ -34,7 +35,8 @@ error_messages = {
     "no id entered":"No id entered",
     "Id not a number":"Id must be a number",
     "Patient already exists":"A patient with that id already exists.",
-    "no tests":"No tests were selected"
+    "no tests":"No tests were selected",
+    "No patient for battery":"We could not find the patient in the database, no battery was made."
 }
 
 ##Database Entities
@@ -47,7 +49,7 @@ class TestData(ndb.Model):
 #which will be the patient's unique way to access the site. 
 class Patient(ndb.Model):
     """A patient that will take the test, this includes url and data."""
-    id = ndb.IntegerProperty()
+    id = ndb.StringProperty()
     pastBatteries = ndb.StructuredProperty(TestData, repeated = True)
 
 class Battery(ndb.Model):
@@ -128,8 +130,6 @@ class Admin(webapp2.RequestHandler):
         pastBatteries=None;
         curBatt = None;
         error_message=None;
-        pastBatteries_list=None;
-        patients_list=None;
 
         study_name = self.request.get('study_name',DEFAULT_STUDY_NAME)
         
@@ -140,7 +140,7 @@ class Admin(webapp2.RequestHandler):
         battery_url = self.request.get('battery')
         user = users.get_current_user()
 
-        patients_list, patients_dict = self.get_patients(study_name)
+        patients_dict = self.get_patients(study_name)
 
         if patientID:
             curPatient = patients_dict.get(int(patientID))
@@ -148,7 +148,7 @@ class Admin(webapp2.RequestHandler):
                 error="no patient id"
                 self.redirect('/admin?'+urllib.urlencode({'error':error})+'#errorMod')
                 return
-            pastBatteries_list, pastBatteries_dict = self.get_batteries(patientID, curPatient)
+            pastBatteries_dict = self.get_batteries(patientID, curPatient)
             if battery_url:
                 curBatt = pastBatteries_dict.get(battery_url)
                 if not curBatt:
@@ -157,10 +157,11 @@ class Admin(webapp2.RequestHandler):
                     return
 
         template_values = {
-            'patients': patients_list,
+        #TODO: change html template to use the ordered dict
+            'patients': patients_dict,
             'error_message': error_message,
             'curPatient': curPatient,
-            'pastBatteries': pastBatteries_list,
+            'pastBatteries': pastBatteries_dict,
             'curBattery': curBatt
         }
 
@@ -172,54 +173,48 @@ class Admin(webapp2.RequestHandler):
         batts = {}
         for battery in pastBatteries:
             batts[battery.url] = battery
-        return batts
+        orderedBatts = OrderedDict(sorted(batts.items(), key=lambda t: t[0]))
+        return orderedBatts
 
     def patientsToDict(self, patients):
         pats = {}
         for patient in patients:
             pats[patient.id] = patient
-        return pats
+        orderedPats = OrderedDict(sorted(pats.items(), key=lambda t: t[0]))
+        return orderedPats
 
     def get_patients(self, study_name=DEFAULT_STUDY_NAME):
-        patients_list = memcache.get('%s:patients_list' % study_name)
         patients_dict = memcache.get('%s:patients_dict' % study_name)
-        if patients_list and patients_dict is not None:
-            print(patients_list, patients_dict)
-            return patients_list, patients_dict
+        if patients_dict is not None:
+            print(patients_dict)
+            return patients_dict
         else:
             patients_list = Patient.query(ancestor=study_key(study_name)).order(Patient.id).fetch()
             patients_dict = self.patientsToDict(patients_list)
-            if not memcache.add('%s:patients_list' % study_name, patients_list):
-                logging.error('Memcache set failed.')
             if not memcache.add('%s:patients_dict' % study_name, patients_dict):
                 logging.error('Memcache set failed.')
-        return patients_list, patients_dict
+        return patients_dict
 
     def get_batteries(self, patient_id, curPatient):
-        pastBatteries_list=memcache.get('%s:batteries_list' % patient_id)
         pastBatteries_dict=memcache.get('%s:batteries_dict' % patient_id)
-        if pastBatteries_list and pastBatteries_dict is not None:
-            return pastBatteries_list, pastBatteries_dict 
+        if pastBatteries_dict is not None:
+            return pastBatteries_dict 
         else:
-            pastBatteries_dict =  Battery.query(ancestor=curPatient.key).order(-Battery.dateCreated).fetch()
-            pastBatteries_dict = self.batteriesToDict(pastBatteries_dict)
+            pastBatteries_list =  Battery.query(ancestor=curPatient.key).order(-Battery.dateCreated).fetch()
+            pastBatteries_dict = self.batteriesToDict(pastBatteries_list)
             if not memcache.add('%s:batteries_dict' % patient_id, pastBatteries_dict):
                 logging.error('Memcache set failed.')
-            if not memcache.add('%s:batteries_list' % patient_id, pastBatteries_list):
-                logging.error('Memcache set failed')
-        return pastBatteries_list, pastBatteries_dict
+        return pastBatteries_dict
 
     
 
 class AddPatient(webapp2.RequestHandler):
     def post(self):
         study_name = self.request.get('study_name',DEFAULT_STUDY_NAME)
-        patients_list = memcache.get('%s:patients_list' % study_name)
         patients_dict = memcache.get('%s:patients_dict' % study_name)
 
-        if not patients_dict and patients_list:
-            patients_dict = {}
-            patients_list = []
+        if not patients_dict:
+            patients_dict = OrderedDict();
 
         patientID = self.request.get('patientID')
         if not patientID: 
@@ -227,7 +222,8 @@ class AddPatient(webapp2.RequestHandler):
             self.redirect('/admin?'+urllib.urlencode({'error':error})+'#errorMod')
             return
         try:
-            patientID = int(patientID)
+            #test to see if id is a number
+            tmp = int(patientID)
         except ValueError:
             error="Id not a number"
             self.redirect('/admin?'+urllib.urlencode({'error':error})+'#errorMod')
@@ -237,17 +233,15 @@ class AddPatient(webapp2.RequestHandler):
             self.redirect('/admin?'+urllib.urlencode({'error':error})+'#errorMod')
             return
         
-        self.addPatient(patientID, study_name, patients_dict, patients_list)
+        self.addPatient(patientID, study_name, patients_dict)
 
         self.redirect('/admin?'+urllib.urlencode({'patient':patientID}))
 
-    def addPatient(self, patientID, study_name, patients_dict, patients_list):
+    def addPatient(self, patientID, study_name, patients_dict):
         newPatient = Patient(parent=study_key(study_name), id=patientID)
         newPatient.put()
         patients_dict[str(patientID)] = newPatient
-        patients_list.append(newPatient)
-        patients_list_sorted = sorted(patients_list, key=lambda pat:pat.id)
-        memcache.set('%s:patients_list' % study_name, patients_list_sorted)
+        patients_dict = OrderedDict(sorted(patients_dict.items(), key=lambda pat:pat[0]))
         memcache.set('%s:patients_dict' % study_name, patients_dict)
 
 
@@ -261,7 +255,9 @@ class AddBattery(webapp2.RequestHandler):
         patientID = self.request.get('id')
         curPatient = self.get_curPatient(patientID, study_name)
         if not curPatient:
-            print "can't find patient"
+            error="No patient for battery"
+            self.redirect('/admin?'+urllib.urlencode({'error':error})+'#errorMod')
+            return
         else:
             print curPatient
 
@@ -291,24 +287,22 @@ class AddBattery(webapp2.RequestHandler):
         print newBattery
         newBattery.put()
         batteries_dict =  memcache.get('%s:batteries_dict' % patient.id)
-        batteries_list = memcache.get('%s:batteries_list' % patient.id)
-        if not batteries_list:
-            batteries_list=[]
         if not batteries_dict:
-            batteries_dict={}
+            batteries_dict=OrderedDict()
         batteries_dict[url] = newBattery
-        batteries_list.append(newBattery)
-        sorted_batt_list = sorted(batteries_list, key=lambda bat: bat.dateString, reverse=True)
-        memcache.set('%s:batteries_list' % patient.id, sorted_batt_list)
+        batteries_dict = OrderedDict(sorted(batteries_dict.items(), key=lambda bat: bat[1]['dateString'], reverse=True)
         memcache.set('%s:batteries_dict' % patient.id, batteries_dict)
 
 
     def get_curPatient(self, patientID, study_name):
         patients = memcache.get('%s:patients_dict' % study_name)
         if not patients:
-            logging.error('Memcache set failed.')
-            return None
-        return patients[int(patientID)]
+            curPatient = Patient.query(ancestor=curPatient.key, Patient.id==patientID).fetch()
+            if curPatient:
+                return curPatient
+            else:
+                return None
+        return patients.get(patientID)
 
 
     def createRandURL(self):
@@ -320,7 +314,24 @@ class AddBattery(webapp2.RequestHandler):
             newURL = ''.join(random.choice(chars) for x in range(size))
         return newURL
 
+class logSRTdata(webapp2.RequestHandler):
+    def post(self):
+        #TODO: Get the URL from the html page, pass it here and get the correct study.
+        questionIndex = self.request.get('question')
+        questionResponse = self.request.get('points')
+        battery_id = self.request.get('id')
+        curBattery = self.getBattery(battery_id);
+        srt_data=memcache.get('%s:srt_data' % battery_id)
+        if srt_data is not None:
+             srt_data[questionIndex]=questionResponse
+        else:
+            srt_data = {}
+            srt_data[questionIndex]=questionResponse
+            if not memcache.add('%s:srt_data' % battery_id, srt_data):
+                logging.error('Memcache set failed.')
 
+    def getBattery(self, id):
+        batteries_dict = memcache.get('%s:batteries_dict' % patient.id)
 
 
 
@@ -334,4 +345,5 @@ app = webapp2.WSGIApplication([
     ('/admin', Admin),
     ('/newPatient', AddPatient),
     ('/newTestBattery', AddBattery),
+    ('/logSRTdata', logSRTdata),
 ], debug=True)

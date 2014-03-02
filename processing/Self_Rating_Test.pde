@@ -66,7 +66,6 @@ void draw(){
   image(bg, 0, 0, width, height);
   if (!begun){
     begin();
-    noLoop();
   }
   for(BoardObj obj : toDisplay){
     obj.display();
@@ -276,7 +275,7 @@ class StartButton extends Button{
   
   void click(){
     begun = true;
-    clickableObjs.remove(this);
+    clickableObjs.clear()
     nextQuestion();
   }
 };

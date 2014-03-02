@@ -1,3 +1,5 @@
+
+
 //Images
 PImage bg;
 PImage instructions;
@@ -6,10 +8,10 @@ PImage instructions;
 ArrayList<String> questions;
 ArrayList<Integer> answers;
 ArrayList<ClickableObj> clickableObjs;
-Stack<Integer> shuffled;
+ArrayList<Integer> shuffled;
 int curIndex;
 boolean begun = false;
-String url = '/logSRTdata'
+String url = "/logSRTdata";
 
 ArrayList<BoardObj> toDisplay;
 
@@ -39,6 +41,8 @@ void setup() {
   stroke(255,0,0);
   
 }
+
+
 
 void mouseClicked(){
   CLickableObj obj = findMouseSelect(mouseX, mouseY);
@@ -105,10 +109,14 @@ void populateQs(){
 }
 
 void shuffleQs(){
-  for(int i=0;i<questions.size();i++){
-    shuffled.push(i);
+  ArrayList<Integer> temp = new ArrayList<Integer>();
+  for(int i=0; i<questions.size();i++){
+    temp.add(i);
   }
-  Collections.shuffle(shuffled);
+  while(shuffled.size()<questions.size()){
+    int tempRand = (int)random(temp.size());
+    shuffled.add(temp.remove(tempRand));
+  }
 }
 
 //Screens
@@ -119,18 +127,17 @@ void begin(){
   text("Self Rating Test", 0, height*.05, width, height*.1);
   //instructions
   textSize(14);
-  text("Read each statement presented and select the appropriate rating", 0, height*.175, width, height*.05)
+  text("Read each statement presented and select the appropriate rating", 0, height*.175, width, height*.05);
   //image or video
-  image(instructions, width*.25, height*.25, width*.5, height*.5)
+  image(instructions, width*.25, height*.25, width*.5, height*.5);
   //start button
   //StartButton startButton = new StartButton();
 }
-
-
+/*
 void nextQuestion(){
   //getNextQuestionIndex
   if(!shuffled.isEmpty()){
-    curIndex = shuffled.pop();
+    curIndex = shuffled.remove(0);
     String questionText = questions[curIndex];
     //setNextQuestionText
     Question nextQuestion = new Question(questionText);
@@ -152,6 +159,7 @@ void waitingScreen(){
   toDisplay.clear();
   text(question, width*.2, height*.4, width*.6, height*.3);
 }
+*/
 
 //
 //Talking with JavaScript
@@ -165,7 +173,7 @@ void sendData(String points){
 }
 
 String createData(String points){
-  return "question="+curIndex+'&points='+points;
+  return "question="+curIndex+"&points="+points;
 }
 
 String createDataId(){
@@ -209,10 +217,10 @@ class ClickableObj extends BoardObj{
   void click(){}
 };
 
-
+/*
 
 class Button extends ClickableObj{
-  String displayText
+  String displayText;
   int x;
   int y;
 
@@ -235,7 +243,10 @@ class Button extends ClickableObj{
 };
 
 class StartButton extends Button{
-  displayText = "Start"
+  
+  StartButton(){
+    displayText = "Start";
+  }
   
   @Override
   click(){
@@ -269,11 +280,11 @@ class ButtonBar extends BoardObj{
     AnswerButton sometimes = new AnswerButton("Sometimes", "1");
     AnswerButton often = new AnswerButton("Often", "2");
     //Set buttons' x's and y's
-    int barWidth = never.objWidth*3+buttonMargin*3
+    int barWidth = never.objWidth*3+buttonMargin*3;
     never.x = (width-barWidth)/2;
     sometimes.x = never.x+never.objWidth+buttonMargin;
     often.x = sometimes.x+sometimes.objWidth+buttonMargin;
-    never.y = sometimes.y = often.y = height*.8
+    never.y = sometimes.y = often.y = height*.8;
   }
 
   @Override
@@ -304,5 +315,5 @@ class Question extends BoardObj{
   }
 };
 
-
+*/
 

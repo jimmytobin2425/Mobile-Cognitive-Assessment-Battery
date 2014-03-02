@@ -76,7 +76,6 @@ void draw(){
 
 ClickableObj findMouseSelect(int x, int y){
   for(ClickableObj obj : clickableObjs){
-    //println("Mouse clicked at ("+x+","+y+")");
     if (obj.inBounds(x, y)) return obj;
   }
   return null;
@@ -163,28 +162,37 @@ void nextQuestion(){
   }
 }
 
-/*
+
 void finalScreen(){
   toDisplay.clear();
-  text(question, width*.2, height*.4, width*.6, height*.3);
+  redraw();
+  noLoop();
+  fill(0);
+  textAlign(CENTER, BOTTOM);
+  textSize(48);
+  text("Thank you. Your results have been saved.", 0, height*.4, width, height*.3);
 
 }
 
 void waitingScreen(){
   toDisplay.clear();
-  text(question, width*.2, height*.4, width*.6, height*.3);
+  redraw();
+  noLoop();
+  fill(0);
+  textAlign(CENTER, BOTTOM);
+  textSize(48);
+  text("Please wait while we save your data...", 0, height*.4, width, height*.3);
+
 }
-*/
+
 
 //
 //Talking with JavaScript
 //
 void sendData(String points){
-  println("Sending Data! Points:"+points);
   if(javascript!=null){
     String data = createData(points);
     String dataID = createDataId();
-    println("url:"+url+" data:"+data+" dataID:"+dataID);
     javascript.logData(url, data, dataID);
   }
 }
@@ -280,6 +288,11 @@ class AnswerButton extends Button{
   }
 
   void click(){
+    strokeWeight(4);
+    stroke(255, 0, 0);
+    rect(xpos, ypos, objWidth, objHeight);
+    strokeWeight(1);
+    stroke(100);
     sendData(pointValue);
     nextQuestion();
   } 
@@ -294,7 +307,6 @@ class ButtonBar extends BoardObj{
 
   ButtonBar(){
     never = new AnswerButton("Never", "0");
-    println("never Made?:"+never);
     sometimes = new AnswerButton("Sometimes", "1");
     often = new AnswerButton("Often", "2");
     //Set buttons' x's and y's

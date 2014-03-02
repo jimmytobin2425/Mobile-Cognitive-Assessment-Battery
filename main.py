@@ -299,7 +299,7 @@ class AddBattery(webapp2.RequestHandler):
         if not patients:
             curPatient = Patient.query(Patient.id==patientID, ancestor=curPatient.key).fetch()
             if curPatient:
-                return curPatient
+                return curPatient[0]
             else:
                 return None
         return patients.get(patientID)
@@ -329,9 +329,11 @@ class logSRTdata(webapp2.RequestHandler):
 
     def post(self):
         #TODO: Get the URL from the html page, pass it here and get the correct study.
-        questionIndex = self.request.get('question')
-        questionResponse = self.request.get('points')
-        battery_id = self.request.get('id')
+        decodedRequest = self.decode(str(self.request).split('\n')[-1])
+        print decodedRequest
+        questionIndex = decodedRequest.get('question')
+        questionResponse = decodedRequest.get('points')
+        battery_id = decodedRequest.get('id')
         print questionIndex
         print questionResponse
         srt_data=memcache.get('%s:srt_data' % battery_id)
@@ -344,22 +346,38 @@ class logSRTdata(webapp2.RequestHandler):
             srt_data[questionIndex]=questionResponse
             if not memcache.add('%s:srt_data' % battery_id, srt_data):
                 logging.error('Memcache set failed.')
-        if len(srt_data) is 33:
+        if len(srt_data)==33:
             #all questions answered
-            saveData(srt_data, battery_id)
+            self.saveData(srt_data, battery_id)
+            self.response.write("-1")
+            return
         self.response.write(str(len(srt_data)))
 
-    def saveData(self, id):
-        curBattery = Battery.query(url=id).fetch()
+    def decode(self, requestStr):
+        print requestStr
+        params = requestStr.split("&")
+        decoded = {}
+        for p in params:
+            elems = p.split("=")
+            decoded[elems[0]]=elems[1]
+        return decoded
+
+    def saveData(self, srt_data, id):
+        curBattery = Battery.query(Battery.url==id).fetch()[0]
         sortedData = sorted(srt_data.items(), key=lambda b:b[0])
         curTest = self.getCurrentTest(curBattery)
         curTest.data = str(sortedData)
         curTest.put()
-        Battery.put()
+        curBattery.put()
 
     def getCurrentTest(self, curBattery):
+        print curBattery
         for test in curBattery.testData:
-            if test.testName is 'sr': return test
+            print test
+            print test.testName
+            if test.testName=='Self-Rating': 
+                print "found it!",test
+                return test
 
     def setMemcache(self, curBattery):
         patients_dict = memcache.get('%s:patients_dict' % DEFAULT_STUDY_NAME)

@@ -44,6 +44,7 @@ error_messages = {
 class TestData(ndb.Model):
     testName = ndb.StringProperty()
     data = ndb.StringProperty(indexed=False)
+    dataHTML = ndb.StringProperty(indexed=False)
 
 #A patient is created by the admin. The patient has an id which is only visible to the admin and a 'url',
 #which will be the patient's unique way to access the site. 
@@ -348,7 +349,8 @@ class logSRTdata(webapp2.RequestHandler):
                 logging.error('Memcache set failed.')
         if len(srt_data)==33:
             #all questions answered
-            self.saveData(srt_data, battery_id)
+            curBattery = self.saveData(srt_data, battery_id)
+            self.setMemcache(curBattery)
             self.response.write("-1")
             return
         self.response.write(str(len(srt_data)))
@@ -365,29 +367,58 @@ class logSRTdata(webapp2.RequestHandler):
     def saveData(self, srt_data, id):
         curBattery = Battery.query(Battery.url==id).fetch()[0]
         sortedData = sorted(srt_data.items(), key=lambda b:b[0])
+        dataCSV, dataHTML = self.dataToHTMLandCSV(sortedData)
         curTest = self.getCurrentTest(curBattery)
-        curTest.data = str(sortedData)
+        curTest.data = dataCSV
+        curTest.dataHTML = dataHTML
         curTest.put()
         curBattery.put()
+        return curBattery
+
+    def dataToHTMLandCSV(self, data):
+        data_dict = {}
+        for datum in data:
+            data_dict[int(datum[0])]=datum[1]
+        indicies = OrderedDict([
+            ('Cognition Index', range(19)),
+            ('EF Index', [1,2,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]),
+            ('Memory Index', [0,3,4,5,19]),
+            ('Cognitive Reserve Index', range(20,26)),
+            ('Adjustment Index', range(26,30)),
+            ('Sleep Index', [30]),
+            ('Pain Index', [31]),
+            ('Physical Activity Index', [20,32]),
+            ('Self-Rating Index', range(33))
+        ])
+        html = ""
+        csv = ""
+        for index in indicies:
+            value = 0
+            for question in indicies[index]:
+                value += int(data_dict[question])
+            html += "<p>"+index+": "+str(value)+"</p>"
+            csv += index+","+str(value)+"\n"
+
+        return csv, html
+
+
+
 
     def getCurrentTest(self, curBattery):
         print curBattery
         for test in curBattery.testData:
-            print test
-            print test.testName
             if test.testName=='Self-Rating': 
-                print "found it!",test
                 return test
 
     def setMemcache(self, curBattery):
         patients_dict = memcache.get('%s:patients_dict' % DEFAULT_STUDY_NAME)
         if not patients_dict: 
             return
-        for patient in patients_dict:
+        for patient_id in patients_dict:
             batteries_dict = memcache.get('%s:batteries_dict' % patient_id)
             if batteries_dict and batteries_dict.get(curBattery.url):
                 batteries_dict[curBattery.url]=curBattery
-                if not memcache.set('%s:batteries_dict' % patient_id, battery_dict):
+                if not memcache.set('%s:batteries_dict' % patient_id, batteries_dict):
                     logging.error('Memcache set failed.')
 
 

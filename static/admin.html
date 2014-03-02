@@ -112,8 +112,8 @@
 													<span>{{test.testName}}</span>
 												</div>
 												<div class="test-data">
-													{% if test.data %}
-														<p>{{test.data}}</p>
+													{% if test.dataHTML %}
+															{{test.dataHTML|safe}}
 													{% else %}
 														<p>No data has been collected yet.</p>
 													{% endif %}

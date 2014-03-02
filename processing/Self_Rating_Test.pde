@@ -57,7 +57,7 @@ void getQuestion(){
 
 
 void mouseClicked(){
-  CLickableObj obj = findMouseSelect(mouseX, mouseY);
+  ClickableObj obj = findMouseSelect(mouseX, mouseY);
   if(obj != null) obj.click();
 }
 
@@ -66,6 +66,7 @@ void draw(){
   image(bg, 0, 0, width, height);
   if (!begun){
     begin();
+    noLoop();
   }
   for(BoardObj obj : toDisplay){
     obj.display();
@@ -208,6 +209,7 @@ String createDataId(){
 void logDataReceived(String dataID){
 
   if (dataID.equals("-1")){
+    clickableObjs.clear()
     finalScreen();
   }
 }
@@ -274,6 +276,7 @@ class StartButton extends Button{
   
   void click(){
     begun = true;
+    clickableObjs.remove(this);
     nextQuestion();
   }
 };
@@ -288,11 +291,6 @@ class AnswerButton extends Button{
   }
 
   void click(){
-    strokeWeight(4);
-    stroke(255, 0, 0);
-    rect(xpos, ypos, objWidth, objHeight);
-    strokeWeight(1);
-    stroke(100);
     sendData(pointValue);
     nextQuestion();
   } 

@@ -41,8 +41,9 @@
 	}
 	bindJavascript();
 
+  var httpRequest;
+
 	function logData(url, data, dataID) {
-		var httpRequest;
 		if (window.XMLHttpRequest) { // Mozilla, Safari, ...
 		  httpRequest = new XMLHttpRequest();
 		} else if (window.ActiveXObject) { // IE
@@ -69,7 +70,8 @@
 	function logDataReceived() {
 		if (httpRequest.readyState === 4) {
 		  if (httpRequest.status === 200) {
-		    pjs.logDataReceived(httpRequest.dataID);
+		  	console.log(httpRequest.responseText)
+		    pjs.logDataReceived(httpRequest.responseText);
 		  } else {
 		    alert('There was a problem with the request.');
 		  }

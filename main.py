@@ -315,23 +315,62 @@ class AddBattery(webapp2.RequestHandler):
         return newURL
 
 class logSRTdata(webapp2.RequestHandler):
+    def get(self):
+        srt_data=memcache.get('%s:srt_data' % battery_id)
+        if srt_data is not None:
+            length = len(srt_data)
+            if length is 33: 
+                #All questions answered
+                self.response.write('-1')
+            else:
+                self.response.write(str(length))
+        else:
+            self.response.write("Memecache Error")
+
     def post(self):
         #TODO: Get the URL from the html page, pass it here and get the correct study.
         questionIndex = self.request.get('question')
         questionResponse = self.request.get('points')
         battery_id = self.request.get('id')
-        curBattery = self.getBattery(battery_id);
+        print questionIndex
+        print questionResponse
         srt_data=memcache.get('%s:srt_data' % battery_id)
         if srt_data is not None:
              srt_data[questionIndex]=questionResponse
+             if not memcache.set('%s:srt_data' % battery_id, srt_data):
+                logging.error('Memcache set failed.')
         else:
             srt_data = {}
             srt_data[questionIndex]=questionResponse
             if not memcache.add('%s:srt_data' % battery_id, srt_data):
                 logging.error('Memcache set failed.')
+        if len(srt_data) is 33:
+            #all questions answered
+            saveData(srt_data, battery_id)
+        self.response.write(str(len(srt_data)))
 
-    def getBattery(self, id):
-        batteries_dict = memcache.get('%s:batteries_dict' % patient.id)
+    def saveData(self, id):
+        curBattery = Battery.query(url=id).fetch()
+        sortedData = sorted(srt_data.items(), key=lambda b:b[0])
+        curTest = self.getCurrentTest(curBattery)
+        curTest.data = str(sortedData)
+        curTest.put()
+        Battery.put()
+
+    def getCurrentTest(self, curBattery):
+        for test in curBattery.testData:
+            if test.testName is 'sr': return test
+
+    def setMemcache(self, curBattery):
+        patients_dict = memcache.get('%s:patients_dict' % DEFAULT_STUDY_NAME)
+        if not patients_dict: 
+            return
+        for patient in patients_dict:
+            batteries_dict = memcache.get('%s:batteries_dict' % patient_id)
+            if batteries_dict and batteries_dict.get(curBattery.url):
+                batteries_dict[curBattery.url]=curBattery
+                if not memcache.set('%s:batteries_dict' % patient_id, battery_dict):
+                    logging.error('Memcache set failed.')
 
 
 

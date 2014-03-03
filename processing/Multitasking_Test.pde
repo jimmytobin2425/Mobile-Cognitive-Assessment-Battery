@@ -11,9 +11,10 @@ ArrayList<ClickableObj> clickableObjs;
 ArrayList<Integer> shuffled;
 int curIndex;
 boolean begun = false;
-StartButton startButton;
-String url = "/logSRTdata";
-
+String url = "/logMTData";
+String videoFilename = "wm3.webm";
+boolean displayed = false;
+boolean bound = false;
 ArrayList<BoardObj> toDisplay;
 
 
@@ -21,25 +22,27 @@ ArrayList<BoardObj> toDisplay;
 
 interface JavaScript {
   void logData(String url, String data, String dataID);
+  void displayVideo(String filename);
+  void hideVideo();
 }
 
 void bindJavascript(JavaScript js) {
+  bound = true;
   javascript = js;
 }
 
 void setup() {
   size(screen.width,screen.height);
   bg = loadImage("../images/patients-background.png");
-  instructions = loadImage("../images/selfrating-example.png");
+  //instructions = loadImage("../images/selfrating-example.png");
   clickableObjs = new ArrayList<ClickableObj>();
   questions = new ArrayList<String>();
   answers = new ArrayList<Integer>();
   shuffled = new ArrayList<Integer>();
   toDisplay = new ArrayList<toDisplay>();
-  startButton = new StartButton();
-
-  populateQs();
-  shuffleQs();
+  
+  //populateQs();
+  //shuffleQs();
   fill(0);
   stroke(100);
 }
@@ -70,68 +73,26 @@ ClickableObj findMouseSelect(int x, int y){
   return null;
 }
 
-void populateQs(){
-  questions.add("I have trouble remembering new things.");
-  questions.add("It is difficult for me to start a task.");
-  questions.add("My thinking is slow.");
-  questions.add("My memory is worse than other people my age.");
-  questions.add("I am forgetful.");
-  questions.add("I have trouble keeping track of what I'm doing.");
-  questions.add("It's difficult for me to do more than one thing at a time.");
-  questions.add("I say or do things without thinking of the consequences.");
-  questions.add("I have trouble changing from one activity or idea to another.");
-  questions.add("I am upset by changes in my routine.");
-  questions.add("It's hard for me to think of more than one way to solve a problem.");
-  questions.add("I have trouble thinking of things to do with my free time.");
-  questions.add("It's difficult for me to finish things that I've started.");
-  questions.add("I have trouble concentrating.");
-  questions.add("I am confused by other people's reactions to things I say or do.");
-  questions.add("I have a short attention span.");
-  questions.add("I tend to overreact even to small things.");
-  questions.add("I am easily upset.");
-  questions.add("It is difficult for me to express myself.");
-  questions.add("I have trouble finding the right word or words.");
-  questions.add("I engage in aerobic exercise");
-  questions.add("I try to learn new things");
-  questions.add("I try to develop new interests or hobbies");
-  questions.add("I eat healthy and follow a nutritious diet");
-  questions.add("I participate in social groups or clubs");
-  questions.add("I try to stay mentally active.");
-  questions.add("My work skills are impaired (mark never if unemployed)");
-  questions.add("My social skills are impaired");
-  questions.add("My leisure activites are impaired");
-  questions.add("My home skills (cooking, finances, etc) are impaired");
-  questions.add("I have difficulty sleeping at night");
-  questions.add("I have physical pain that interferes with daily activiites");
-  questions.add("I have been physically active throughout my life");
-}
-
-void shuffleQs(){
-  ArrayList<Integer> temp = new ArrayList<Integer>();
-  for(int i=0; i<questions.size();i++){
-    temp.add(i);
-  }
-  while(shuffled.size()<questions.size()){
-    int tempRand = (int)random(temp.size());
-    shuffled.add(temp.remove(tempRand));
-  }
-}
-
 //Screens
 void begin(){
   //title
   textAlign(CENTER, BOTTOM);
   fill(0);
   textSize(64);
-  text("Self Rating Test", 0, height*.05, width, height*.2);
+  text("Multitasking", 0, height*.05, width, height*.2);
   //instructions
   textSize(32);
-  text("Read each statement presented and select the appropriate rating", 0, height*.175, width, height*.075);
+  text("During this test, you will have to keep track of two things at once. You must remember 3 letters while counting backwards by 3's.", 0, height*.175, width, height*.125);
   //image or video
-  image(instructions, width*.25, height*.25, width*.5, height*.5);
+  //image(instructions, width*.25, height*.25, width*.5, height*.5);
   //start button
-  
-  startButton.display();
+  if(!displayed&&bound){
+    displayed = true;
+    javascript.displayVideo(videoFilename);
+  } 
+  PracticeButton practiceButton = new PracticeButton();
+  practiceButton.display();
+  //noLoop();
 }
 
 void nextQuestion(){
@@ -144,8 +105,6 @@ void nextQuestion(){
     //createNextQuestion
     toDisplay.clear();
     toDisplay.add(nextQuestion);
-    redraw();
-    noLoop();
   }else{
     waitingScreen();
   }
@@ -197,7 +156,7 @@ String createDataId(){
 void logDataReceived(String dataID){
 
   if (dataID.equals("-1")){
-    clickableObjs.clear();
+    clickableObjs.clear()
     finalScreen();
   }
 }
@@ -253,7 +212,21 @@ class Button extends ClickableObj{
   }
 };
 
+class PracticeButton extends Button{
+  PracticeButton(){
+    displayText = "Practice";
+    xpos = (width-objWidth)/2;
+    ypos = (int)height*.76;
+  }
 
+  void click(){
+    begun = true;
+    clickableObjs.clear();
+    javascript.hideVideo();
+    //practiceRound();
+  }
+};
+/*
 class StartButton extends Button{
 
   StartButton(){
@@ -329,4 +302,4 @@ class Question extends BoardObj{
   }
 };
 
-
+*/

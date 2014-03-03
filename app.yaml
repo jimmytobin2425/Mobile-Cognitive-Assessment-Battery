@@ -21,6 +21,9 @@ handlers:
 - url: /processing
   static_dir: processing
 
+- url: /movies
+  static_dir: movies
+
 - url: /.*
   script: main.app
 
